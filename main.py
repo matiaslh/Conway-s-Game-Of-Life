@@ -4,8 +4,11 @@ import game
 
 def createGrid(container):
 
-    canvas = tk.Canvas(container, bg='light grey')
-    canvas.place_configure(relwidth=1, relheight=1)
+    canvas = tk.Canvas(container)
+
+    game.canvas = canvas
+
+    canvas.place_configure(relwidth=1, relheight=0.9)
     canvas.bind('<Button-1>', game.mouse_clicked)
     canvas.update()
 
@@ -16,31 +19,41 @@ def createGrid(container):
 
     for i in range(game.N):
         for j in range(game.M):
-            rect = canvas.create_rectangle(i * x_length, j * y_length, (i+1) * x_length, (j+1) * y_length)
-            game.squares[i][j] = rect
+            x = (i + 0.5) * x_length
+            y = (j + 0.5) * y_length
+            canvas.create_rectangle(x - x_length/2, y - y_length/2, x + x_length/2, y + y_length/2, fill='light grey')
 
+def createControls(container):
+    run_once = tk.Button(container, text='Run Once', command=game.run_gen)
+    run_once.place(relx=0.1, rely=0.9)
 
-########################
-# Initialize the window
-########################
+    run_forever = tk.Button(container, text='Run Forever', command=game.run_forever)
+    run_forever.place(relx=0.2, rely=0.9)
 
-root = tk.Tk()
-root.title('Game of Life')
+    change_time_interval = tk.Button(container, text='Change Speed', command=game.change_interval)
+    change_time_interval.place(relx=0.3, rely=0.9)
 
-# Set window to fullscreen mode, escape to quit
-root.attributes('-fullscreen', True)
-root.bind("<Escape>", lambda e: root.quit())
+    time_input = tk.Entry(container)
+    time_input.place(relx=0.4, rely=0.9)
+    game.entry = time_input
 
+if __name__ == '__main__':
 
-# Make the canvas with the main grid
-frame = tk.Frame(root)
+    ########################
+    # Initialize the window
+    ########################
+    root = tk.Tk()
+    game.root = root
 
-frame.place_configure(relx=1/10, relwidth=0.8, relheight=0.8)
+    root.title('Game of Life')
 
-frame.update()
-createGrid(frame)
+    # Set window to fullscreen mode, escape to quit
+    root.attributes('-fullscreen', True)
+    root.bind("<Escape>", lambda e: root.quit())
 
-# Create the window
-root.mainloop()
+    # Make the canvas with the main grid and controls
+    createGrid(root)
+    createControls(root)
 
-
+    # Create the window
+    root.mainloop()

@@ -1,39 +1,66 @@
 import tkinter as tk
 import numpy as np
 
-N, M = 5, 5
-
+N, M = 50, 50
 grid = np.full((N, M), False)
-squares = np.full((N, M), None)
+root, canvas, entry = None, None, None
+time_interval= 1000
+
+def isAlive(curr_state, neighbours):
+    if curr_state and (neighbours == 2 or neighbours == 3):
+        return True
+    elif not curr_state and neighbours == 3:
+        return True
+    return False
+
+def getNeighbours(i, j):
+    global grid
+    count = 0
+    for x_offset in range(-1, 2):
+        for y_offset in range(-1, 2):
+            x = (i + x_offset) % len(grid)
+            y = (j + y_offset) % len(grid[i])
+            square = grid[x][y]
+            if not (x_offset == 0 and y_offset == 0) and square:
+                count += 1
+    return count
+
+def run_gen():
+    global grid
+    new_grid = np.full((N, M), False)
+    for i in range(len(grid)):
+        for j in range(len(grid[i])):
+            neighbours = getNeighbours(i, j)
+            boo = isAlive(grid[i][j], neighbours)
+            new_grid[i][j] = boo
+    grid = new_grid
+    drawGrid()
+
+def run_forever():
+    global root, time_interval
+    root.after(time_interval, run_forever)
+    run_gen()
 
 def mouse_clicked(event):
-    canvas = event.widget
-    width = canvas.winfo_width()
-    height = canvas.winfo_height()
+    global grid, canvas
 
+    if canvas.find_withtag(tk.CURRENT):
+        item_id = canvas.find_withtag(tk.CURRENT)[0]
+        i = (item_id - 1) // N
+        j = (item_id - 1) % N
+        
+        grid[i][j] = not grid[i][j]
+        canvas.itemconfig(tk.CURRENT, fill='red' if grid[i][j] else 'light grey')
 
-    x = event.x
-    y = event.y
+def drawGrid():
+    global grid, canvas
+    ids = canvas.find('all')
 
-    # i = int(x % N)
-    # j = int(y % M)
+    for id in ids:
+        i = (id - 1) // N
+        j = (id - 1) % N
+        canvas.itemconfig(id, fill='red' if grid[i][j] else 'light grey')
 
-    # print(i, j)
-    # print(x,y)
-
-    # grid[i][j] = not grid[i][j]
-
-    x_length = width // N
-    y_length = height // M
-
-    canvas.itemconfig(canvas.find_closest(x - x_length, y-y_length)[0], fill='red')
-    canvas.itemconfig(canvas.find_enclosed(x, y,x,y)[0], fill='blue')
-    canvas.itemconfig(canvas.find_overlapping(x, y,x,y)[0], fill='green')
-
-
-
-    # canvas.itemconfig(rect, fill='red')
-
-    # canvas.itemconfig(tk.CURRENT, fill='red')
-    # print(canvas.find_withtag(tk.CURRENT))
-    # print(x, y)
+def change_interval():
+    global time_interval, entry
+    time_interval = entry.get()
